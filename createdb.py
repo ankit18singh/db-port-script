@@ -93,7 +93,7 @@ def main():
     for item in table_name_set:
         sql_create_projects_table = """ CREATE TABLE IF NOT EXISTS [{table_name}] (
                                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        Number CHAR,
+                                        Number CHAR UNIQUE,
                                         Name CHAR,
                                         Address CHAR,
                                         Date DATE,
