@@ -2,13 +2,12 @@
 import sqlite3
 from sqlite3 import Error
 
-# Method to create db connection. 
+""" create a database connection to the SQLite database specified by db_file
+
+:param db_file: database file
+:return: Connection object or None
+""" 
 def create_connection(db_file):
-    """ create a database connection to the SQLite database
-        specified by db_file
-    :param db_file: database file
-    :return: Connection object or None
-    """
     try:
         conn = sqlite3.connect(db_file)
         return conn
@@ -17,56 +16,61 @@ def create_connection(db_file):
  
     return None
 
-# Method to create table
-def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
 
+""" create a table from the create_table_sql_statement
+
+:param conn: Connection object
+:param create_table_sql_statement: a CREATE TABLE statement
+:return:
+"""
+def create_table(conn, create_table_sql_statement):
     try:
         c = conn.cursor()
-        c.execute(create_table_sql)                
+        c.execute(create_table_sql_statement)                
     except Error as e:
         print(e)
 
-def move_data(conn, sql_move_data_queries):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
 
+""" move data from source table to newly created table using the sql_move_data_statement
+
+:param conn: Connection object
+:param sql_move_data_queries: statement to move data within two tables
+:return:
+"""
+def move_data(conn, sql_move_data_statement):
     try:
         c = conn.cursor()
-        c.execute(sql_move_data_queries)
+        c.execute(sql_move_data_statement)
         conn.commit()
         print("Inserted")                             
     except Error as e:
         print(e)
 
-def delete_from_source(conn, delete_from_source):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
 
+""" delete data from source table using the delete_from_source_statement
+
+:param conn: Connection object
+:param delete_from_source_statement: a DELETE TABLE statement
+:return:
+"""
+def delete_from_source(conn, delete_from_source_statement):
     try:
         c = conn.cursor()  
-        c.execute(delete_from_source)
+        c.execute(delete_from_source_statement)
         conn.commit()
         print("Deleted from Source")                
     except Error as e:
         print(e)
 
-# Method to fetch table names
+""" fetch column data to and return a set to create new tables
+
+:param conn: Connection object
+:return table_set: Set of table names
+"""
 def fetch_table_names(conn):
     
-    table_list = []
     table_set = set([])
-    cursor = conn.execute("SELECT Number from ekyc1;")
+    cursor = conn.execute("SELECT Number from < source database >;")
 
     for row in cursor:
         table = str(row[0])
@@ -75,17 +79,19 @@ def fetch_table_names(conn):
     return table_set
 
 
-# Main method.
+"""  
+    main method to execute the program.
+"""
 def main():
-    main_db = "./testdb/testcg.db"
+    main_db = "< path to .db file >"
 
     # create a database connection
     conn = sqlite3.connect(main_db)
 
-    tablelist = fetch_table_names(conn)    
+    table_name_set = fetch_table_names(conn)    
 
-    for table in tablelist:
-        sql_create_projects_table = """ CREATE TABLE IF NOT EXISTS [{tabl}] (
+    for item in table_name_set:
+        sql_create_projects_table = """ CREATE TABLE IF NOT EXISTS [{table_name}] (
                                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
                                         Number CHAR,
                                         Name CHAR,
@@ -93,22 +99,22 @@ def main():
                                         Date DATE,
                                         Circle INT,
                                         Operator INT
-                                    ); """.format(tabl= table)
+                                    ); """.format(table_name= item)
 
-        sql_move_data_queries = """ INSERT INTO [{tabl}] (Number, Name, Address, Date, Circle, Operator)
-                                    SELECT Number, Name, Address, Date, Circle, Operator FROM ekyc1 
-                                    WHERE substr(Number, 0,6) = '{tabl}';
-                                """.format(tabl= table)
+        sql_move_data_statement = """ INSERT INTO [{table_name}] (Number, Name, Address, Date, Circle, Operator)
+                                    SELECT Number, Name, Address, Date, Circle, Operator FROM < source table > 
+                                    WHERE substr(Number, 0,6) = '{table_name}';
+                                """.format(table_name= item )
 
-        delete_data = """ DELETE FROM ekyc1           
-                        WHERE substr(Number, 0,6) = '{tabl}';
-                        """.format(tabl = table)
+        delete_data_statement = """ DELETE FROM < source table >           
+                        WHERE substr(Number, 0,6) = '{table_name}';
+                        """.format(table_name = item )
     
         if conn is not None:
             # create projects table
             create_table(conn, sql_create_projects_table)
-            move_data(conn, sql_move_data_queries)
-            delete_from_source(conn, delete_data)
+            move_data(conn, sql_move_data_statement)
+            delete_from_source(conn, delete_data_statement)
         else:
             print("Error! cannot create the database connection.")
     
